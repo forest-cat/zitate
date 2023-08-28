@@ -1,7 +1,7 @@
 import json
 import discord
 import datetime
-from discord.commands import Option
+from discord.commands import Option, message_command
 
 def read_config():
     with open('config-sensitive-data.json') as f:
@@ -11,6 +11,9 @@ intents = discord.Intents.default()
 guilds = read_config()["GUILDS"]
 bot = discord.Bot(intents=intents)
 
+@bot.event
+async def on_ready():
+    print(f'Logged in as {bot.user}!')
 
 
 @bot.slash_command(guild_ids=guilds) 
@@ -19,7 +22,6 @@ async def zitat(ctx: discord.ApplicationContext,
                 zitat: Option(str, "Der Satz, der zitiert werden soll", required=True)
                 ):
     """Zitiere einen bestimmten Satz von einem Discord-Benutzer"""
-    await ctx.respond(f'Der Benutzer {discord_benutzer.mention} wird jetzt mit folgendem Zitat zitiert: `{zitat}` von {ctx.author.mention}!', ephemeral=True)
     
     zitat_embed = discord.Embed(
         color=discord.Color.random(),
@@ -30,6 +32,7 @@ async def zitat(ctx: discord.ApplicationContext,
     
     channel = bot.get_channel(read_config()["QUOTES_CHANNEL"])
     await channel.send(embed=zitat_embed)
+    await ctx.respond(f'Der Benutzer {discord_benutzer.mention} wurde mit folgendem Zitat zitiert: `{zitat}` von {ctx.author.mention}!', ephemeral=True)
 
 
 @bot.slash_command(guild_ids=guilds) 
@@ -38,7 +41,6 @@ async def custom_zitat(ctx: discord.ApplicationContext,
                 zitat: Option(str, "Der Satz, der zitiert werden soll", required=True)
                 ):
     """Zitiere einen bestimmten Satz von einem NICHT-Discord-Benutzer"""
-    await ctx.respond(f'**@{benutzer.capitalize()}** wird jetzt mit folgendem Zitat zitiert: `{zitat}` von {ctx.author.mention}!', ephemeral=True)
 
     zitat_embed = discord.Embed(
         color=discord.Color.random(),
@@ -48,6 +50,21 @@ async def custom_zitat(ctx: discord.ApplicationContext,
     
     channel = bot.get_channel(read_config()["QUOTES_CHANNEL"])
     await channel.send(embed=zitat_embed)
+    await ctx.respond(f'**@{benutzer.capitalize()}** wurde mit folgendem Zitat zitiert: `{zitat}` von {ctx.author.mention}!', ephemeral=True)
+
+@bot.message_command(guild_ids=guilds, name="Zitieren")
+async def app_zitat(ctx: discord.ApplicationContext, message):
+    zitat_embed = discord.Embed(
+        color=discord.Color.random(),
+        description=f"## `{message.content}`\n### {message.author.mention}\n\n_ _\n\n*Zitiert von {ctx.author.mention}*"
+    )
+    zitat_embed.set_thumbnail(url=message.author.avatar.url)
+    zitat_embed.set_footer(icon_url=ctx.author.avatar.url, text=f"{datetime.datetime.now().strftime('%H:%M | %d.%m.%Y')}")
+    
+    channel = bot.get_channel(read_config()["QUOTES_CHANNEL"])
+    await channel.send(embed=zitat_embed)
+    await ctx.respond(f'Der Benutzer {message.author.mention} wurde mit folgendem Zitat zitiert: `{message.content}` von {ctx.author.mention}!', ephemeral=True)
+
 
 
 bot.run(read_config()["TOKEN"])
