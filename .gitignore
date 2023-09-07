@@ -162,3 +162,7 @@ cython_debug/
 config-sensitive-data.json
 %Bibliotheken%Programms-Workspace%Python%Python-bot%Haupt-Schule-Bot%zitate%zitate
 history.sqlite
+meine_datenbank.db
+read-database.py
+write-database.py
+zitatabase.db

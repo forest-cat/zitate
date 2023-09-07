@@ -1,5 +1,6 @@
 {
     "TOKEN": "token goes here",
     "GUILDS": [1, 2, 3],
-    "QUOTES_CHANNEL": 123456789
+    "QUOTES_CHANNEL": 123456789,
+    "DATABASE": "database.db"
 }
