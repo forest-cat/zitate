@@ -8,7 +8,7 @@ from discord.ext import commands
 from discord.commands import Option, message_command
 
 def read_config():
-    with open('config-sensitive-data.json') as f:
+    with open('config.json') as f:
         return json.load(f)
 
 intents = discord.Intents.default()
