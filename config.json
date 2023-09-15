@@ -2,5 +2,11 @@
     "TOKEN": "token goes here",
     "GUILDS": [1, 2, 3],
     "QUOTES_CHANNEL": 123456789,
-    "DATABASE": "database.db"
+    "DATABASE": "database.db",
+    "UPVOTE_EMOJI_NAME": "upvote emoji name",
+    "UPVOTE_EMOJI_ID": 123456789,
+    "DOWNVOTE_EMOJI_NAME": "downvote emoji name",
+    "DOWNVOTE_EMOJI_ID": 123456789,
+    "ZITAT_COOLDOWN": 10,
+    "ZITAT_PERMISSION_ROLE_ID": 123456789
 }
