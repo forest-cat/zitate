@@ -300,6 +300,9 @@ async def send_info_text(ctx):
 
             \n## Ich kann die Commands nicht benutzen?
             \nStelle sicher das du die <@&{read_config()["ZITAT_PERMISSION_ROLE_ID"]}> Rolle hast. Falls du sie nicht haben solltest, frag bitte einen der Admins ob er sie dir wieder gibt.
+            
+            \n## Mir gefällt Feature XY an dem Bot nicht?
+            \nDu kannst gerne <@539142329546571806> kontaktieren und deine Idee einbringen. Alternativ kannst du auch gerne einen Pull-Request auf GitHub erstellen. \n[Link zum Repository](https://github.com/forest-cat/zitate).
             \n_ _
             """)
     info_embed.set_footer(icon_url=bot.user.avatar.url, text=f"{bot.user.display_name} am {datetime.datetime.now().strftime('%d.%m.%Y um %H:%M')}")
