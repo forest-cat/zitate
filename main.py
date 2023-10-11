@@ -8,7 +8,7 @@ from discord.ext import commands
 from discord.commands import Option, message_command
 
 def read_config():
-    with open('config.json') as f:
+    with open('config-sensitive-data.json') as f:
         return json.load(f)
 
 intents = discord.Intents.default()
@@ -84,7 +84,7 @@ async def on_raw_reaction_add(reaction): # Handling the Rating System over the R
             await message.edit(embed=embed)
         else:
             await reaction.member.send(f"Du hast bereits für dieses Zitat (https://discord.com/channels/{reaction.guild_id}/{reaction.channel_id}/{reaction.message_id}) gevotet!")
-        if rating <= -3: # Deleting the quote if the rating is -3 or lower
+        if rating <= -1: # Deleting the quote if the rating is -3 or lower
             await message.delete()
             cursor.execute("DELETE FROM Zitate WHERE Message_ID = ?", (reaction.message_id,))
             conn.commit()
@@ -116,10 +116,10 @@ async def zitat(ctx: discord.ApplicationContext,
     zitat_embed = discord.Embed(
         color=discord.Color.random(),
         description=f"## `{zitat}`\n{kontext if kontext == '' else f'({kontext})'}\n## {discord_benutzer.mention}")
-    zitat_embed.set_thumbnail(url=discord_benutzer.avatar.url)
+    zitat_embed.set_thumbnail(url=discord_benutzer.avatar.url if discord_benutzer.avatar else discord_benutzer.default_avatar.url)
     zitat_embed.add_field(name="Rating", value="0", inline=False)
     zitat_embed.add_field(name="Zitiert von", value=f"{ctx.author.mention}", inline=False)
-    zitat_embed.set_footer(icon_url=ctx.author.avatar.url, text=f"{datetime.datetime.now().strftime('%d.%m.%Y | %H:%M')}")
+    zitat_embed.set_footer(icon_url=ctx.author.avatar.url if ctx.author.avatar else ctx.author.default_avatar.url, text=f"{datetime.datetime.now().strftime('%d.%m.%Y | %H:%M')}")
     
     channel = bot.get_channel(read_config()["QUOTES_CHANNEL"])
     message = await channel.send(embed=zitat_embed)
@@ -178,7 +178,7 @@ async def custom_zitat(ctx: discord.ApplicationContext,
         description=f"## `{zitat}`\n{kontext if kontext == '' else f'({kontext})'}\n## @{benutzer.capitalize()}")
     zitat_embed.add_field(name="Rating", value="0", inline=False)
     zitat_embed.add_field(name="Zitiert von", value=f"{ctx.author.mention}", inline=False)
-    zitat_embed.set_footer(icon_url=ctx.author.avatar.url, text=f"{datetime.datetime.now().strftime('%d.%m.%Y | %H:%M')}")
+    zitat_embed.set_footer(icon_url=ctx.author.avatar.url if ctx.author.avatar else ctx.author.default_avatar.url, text=f"{datetime.datetime.now().strftime('%d.%m.%Y | %H:%M')}")
     
     channel = bot.get_channel(read_config()["QUOTES_CHANNEL"])
     message = await channel.send(embed=zitat_embed)
@@ -229,10 +229,10 @@ async def app_zitat(ctx: discord.ApplicationContext, message):
     zitat_embed = discord.Embed(
         color=discord.Color.random(),
         description=f"## `{message.content}`\n({message.jump_url})\n## {message.author.mention}")
-    zitat_embed.set_thumbnail(url=message.author.avatar.url)
+    zitat_embed.set_thumbnail(url=message.author.avatar.url if message.author.avatar else message.author.default_avatar.url)
     zitat_embed.add_field(name="Rating", value="0", inline=False)
     zitat_embed.add_field(name="Zitiert von", value=f"{ctx.author.mention}", inline=False)
-    zitat_embed.set_footer(icon_url=ctx.author.avatar.url, text=f"{datetime.datetime.now().strftime('%d.%m.%Y | %H:%M')}")
+    zitat_embed.set_footer(icon_url=ctx.author.avatar.url if ctx.author.avatar else ctx.author.default_avatar.url, text=f"{datetime.datetime.now().strftime('%d.%m.%Y | %H:%M')}")
     
     channel = bot.get_channel(read_config()["QUOTES_CHANNEL"])
     new_message = await channel.send(embed=zitat_embed)
