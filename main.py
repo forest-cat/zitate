@@ -8,7 +8,7 @@ from discord.ext import commands
 from discord.commands import Option, message_command
 
 def read_config():
-    with open('config-sensitive-data.json') as f:
+    with open('config.json') as f:
         return json.load(f)
 
 intents = discord.Intents.default()
@@ -71,7 +71,7 @@ async def on_raw_reaction_add(reaction): # Handling the Rating System over the R
             await message.edit(embed=embed)
         else:
             await reaction.member.send(f"Du hast bereits für dieses Zitat (https://discord.com/channels/{reaction.guild_id}/{reaction.channel_id}/{reaction.message_id}) gevotet!")
-        if rating >= 5: # Pinning the quote if the rating is 5 or higher
+        if rating >= 10: # Pinning the quote if the rating is 5 or higher
             await message.pin()
     elif reaction.emoji.id == read_config()["DOWNVOTE_EMOJI_ID"]: # Handling if the user downvotes a quote
         json_obj = json.loads(row[10])
@@ -84,7 +84,7 @@ async def on_raw_reaction_add(reaction): # Handling the Rating System over the R
             await message.edit(embed=embed)
         else:
             await reaction.member.send(f"Du hast bereits für dieses Zitat (https://discord.com/channels/{reaction.guild_id}/{reaction.channel_id}/{reaction.message_id}) gevotet!")
-        if rating <= -1: # Deleting the quote if the rating is -3 or lower
+        if rating <= -3: # Deleting the quote if the rating is -3 or lower
             await message.delete()
             cursor.execute("DELETE FROM Zitate WHERE Message_ID = ?", (reaction.message_id,))
             conn.commit()
@@ -290,7 +290,7 @@ async def send_info_text(ctx):
             \nZitate kannst du jetzt per Slash-Command erstellen. Nutze einfach `/zitat`, wähle den Nutzer aus, den du zitieren möchtest, und gib dann das Zitat ein. Anschließend kannst du entscheiden, ob du auch noch einen Kontext hinzufügen möchtest, der möglicherweise hilft, das Zitat besser zu verstehen. Zitate werden ab jetzt in einer Datenbank gespeichert und können somit auch schnell in einen anderen Kanal oder auf andere Plattformen übertragen werden. Zusätzlich gibt es den `/custom_zitat` Befehl, der genutzt wird, wenn die Person, die du zitieren möchtest, kein Discord-Benutzer ist oder sich nicht auf dem Server befindet. Dort trägst du dann den Namen in das Namensfeld ein, und die Namen werden automatisch groß- oder kleingeschrieben. Zum Beispiel wird aus "beRnd" "Bernd". Wenn du Discord-Nachrichten direkt in den Zitate-Channel stellen möchtest, kannst du dies einfach über einen `Rechtsklick -> Apps -> Zitieren` tun. Für das Zitieren gibt es einen Cooldown von `60 Sekunden`, aber der Bot informiert dich auch, wenn du noch warten musst.
 
             \n## Was ist das Rating?
-            \nDas Rating ist ein neues System zur Bewertung von Zitaten. Dazu kannst du einfach die Pfeile unter einem Zitat verwenden, um das Zitat zu bewerten. Steigt der Score auf `5` oder höher, wird das Zitat angepinnt und ist leichter zu finden. Dadurch können die besten Zitate immer schnell und direkt gefunden werden. Fällt der Score eines Zitats auf oder unter `-3`, wird es sofort gelöscht und aus der Datenbank entfernt. Du kannst ein Zitat nur **einmal** positiv oder negativ bewerten, und die Bewertung kann **nicht** rückgängig gemacht werden. Die Bewertung ist anonym, es sei denn, jemand sieht genau in diesem Moment die Nachricht; deine Reaktion wird dann anschließend gelöscht.
+            \nDas Rating ist ein neues System zur Bewertung von Zitaten. Dazu kannst du einfach die Pfeile unter einem Zitat verwenden, um das Zitat zu bewerten. Steigt der Score auf `10` oder höher, wird das Zitat angepinnt und ist leichter zu finden. Dadurch können die besten Zitate immer schnell und direkt gefunden werden. Fällt der Score eines Zitats auf oder unter `-3`, wird es sofort gelöscht und aus der Datenbank entfernt. Du kannst ein Zitat nur **einmal** positiv oder negativ bewerten, und die Bewertung kann **nicht** rückgängig gemacht werden. Die Bewertung ist anonym, es sei denn, jemand sieht genau in diesem Moment die Nachricht; deine Reaktion wird dann anschließend gelöscht.
 
             \n## Warum kann ich keine Unterhaltungen zitieren?
             \nDas Zitieren von Unterhaltungen ist aufgrund von Discord-spezifischen Einschränkungen mit dem neuen Format nicht mehr möglich. Daran kann ich leider auch nichts ändern. :c
