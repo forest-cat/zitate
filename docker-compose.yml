@@ -1,0 +1,9 @@
+services:
+  quotes:
+    build: .
+    container_name: zitate
+    volumes:
+      - "./data:/data"
+    environment:
+      LOG_LEVEL: "INFO"
+      DISCORD_TOKEN: ""

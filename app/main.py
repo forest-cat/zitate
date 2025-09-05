@@ -1,5 +1,7 @@
 
 import json
+import logging
+
 import pytz
 import sqlite3
 import discord
@@ -9,16 +11,20 @@ from discord.commands import Option, message_command
 
 from config import load_config
 
+
+
 settings = load_config()
 intents = discord.Intents.default()
 intents.message_content = True
 guilds = settings.guilds
 bot = discord.Bot(intents=intents)
 database = settings.db_filename
+logger = logging.getLogger(__name__)
+logger.setLevel(settings.log_level)
 
 @bot.event
 async def on_ready(): # Creating the database if it doesn't exist
-    print(f'Logged in as {bot.user}!')
+    logger.info(f'Logged in as {bot.user}!')
     conn = sqlite3.connect(database)
     cursor = conn.cursor()
     cursor.execute('''CREATE TABLE IF NOT EXISTS Zitate (

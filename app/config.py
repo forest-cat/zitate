@@ -17,7 +17,7 @@ class Settings(BaseSettings):
     upvote_emoji_id:        int = Field(..., validation_alias="UPVOTE_EMOJI_ID")
     downvote_emoji_name:    str = Field(..., validation_alias="DOWNVOTE_EMOJI_NAME")
     downvote_emoji_id:      int = Field(..., validation_alias="DOWNVOTE_EMOJI_ID")
-    quote_cooldown:         int = Field(10, validation_alias="QUOTE_COOLDOWN")
+    quote_cooldown:         int = Field(10,  validation_alias="QUOTE_COOLDOWN")
     quote_permission_role:  int = Field(..., validation_alias="QUOTE_PERMISSION_ROLE")
     model_config = {
         "populate_by_name": True,

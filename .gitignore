@@ -166,3 +166,5 @@ meine_datenbank.db
 read-database.py
 write-database.py
 zitatabase.db
+data/zitate_database.sqlite
+config.yaml
