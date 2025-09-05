@@ -1,4 +1,4 @@
-import re
+
 import json
 import pytz
 import sqlite3
@@ -7,15 +7,14 @@ import datetime
 from discord.ext import commands
 from discord.commands import Option, message_command
 
-def read_config():
-    with open('config.json') as f:
-        return json.load(f)
+from config import load_config
 
+settings = load_config()
 intents = discord.Intents.default()
 intents.message_content = True
-guilds = read_config()["GUILDS"]
+guilds = settings.guilds
 bot = discord.Bot(intents=intents)
-database = read_config()["DATABASE"]
+database = settings.db_filename
 
 @bot.event
 async def on_ready(): # Creating the database if it doesn't exist
@@ -43,7 +42,7 @@ async def on_ready(): # Creating the database if it doesn't exist
 async def on_raw_reaction_add(reaction): # Handling the Rating System over the Reactions
     if reaction.member == bot.user:
         return
-    if reaction.emoji.id not in [read_config()["UPVOTE_EMOJI_ID"], read_config()["DOWNVOTE_EMOJI_ID"]]:
+    if reaction.emoji.id not in [settings.upvote_emoji_id, settings.downvote_emoji_id]:
         return
     
     # Searching if the message is in the database
@@ -55,12 +54,12 @@ async def on_raw_reaction_add(reaction): # Handling the Rating System over the R
         return
     row = rows[0]
 
-    channel = bot.get_channel(read_config()["QUOTES_CHANNEL"])
+    channel = bot.get_channel(settings.quotes_channel)
     message = await channel.fetch_message(reaction.message_id)
     embed = message.embeds[0]
     await message.remove_reaction(reaction.emoji, reaction.member)
     
-    if reaction.emoji.id == read_config()["UPVOTE_EMOJI_ID"]: # Handling if the user upvotes a quote
+    if reaction.emoji.id == settings.upvote_emoji_id: # Handling if the user upvotes a quote
         json_obj = json.loads(row[10])
         rating = int(row[9]) + 1
         if reaction.member.id not in json.loads(row[10]):
@@ -73,7 +72,7 @@ async def on_raw_reaction_add(reaction): # Handling the Rating System over the R
             await reaction.member.send(f"Du hast bereits für dieses Zitat (https://discord.com/channels/{reaction.guild_id}/{reaction.channel_id}/{reaction.message_id}) gevotet!")
         if rating >= 10: # Pinning the quote if the rating is 5 or higher
             await message.pin()
-    elif reaction.emoji.id == read_config()["DOWNVOTE_EMOJI_ID"]: # Handling if the user downvotes a quote
+    elif reaction.emoji.id == settings.downvote_emoji_id: # Handling if the user downvotes a quote
         json_obj = json.loads(row[10])
         rating = int(row[9]) - 1
         if reaction.member.id not in json.loads(row[10]):
@@ -94,15 +93,15 @@ async def on_application_command_error(ctx, error): # Catching specific errors f
     if isinstance(error, commands.errors.CommandOnCooldown):
         await ctx.respond(f"Bitte warte noch `{round(error.retry_after, 1)} Sekunden` und probiere es dann erneut", ephemeral=True)
     elif isinstance(error, commands.errors.MissingRole):
-        await ctx.respond(f"Dir fehlt dazu leider die <@&{read_config()['ZITAT_PERMISSION_ROLE_ID']}> Rolle", ephemeral=True)
+        await ctx.respond(f"Dir fehlt dazu leider die <@&{settings.quote_permission_role}> Rolle", ephemeral=True)
     else:
         raise error
 
 @bot.slash_command(guild_ids=guilds) # The normal /zitat command
-@commands.cooldown(1, read_config()["ZITAT_COOLDOWN"], commands.BucketType.user)
-@commands.has_role(read_config()["ZITAT_PERMISSION_ROLE_ID"])
+@commands.cooldown(1, settings.quote_cooldown, commands.BucketType.user)
+@commands.has_role(settings.quote_permission_role)
 async def zitat(ctx: discord.ApplicationContext,
-                discord_benutzer: Option(discord.Member, "Der Discord-Benutzer, der zitiert werden soll", required=True), 
+                discord_benutzer: Option(discord.Member, "Der Discord-Benutzer, der zitiert werden soll", required=True),
                 zitat: Option(str, "Der Satz, der zitiert werden soll", required=True),
                 kontext: Option(str, "Möglicher Kontext um das Zitat zu verstehen", required=False)=""):
     """Zitiere einen bestimmten Satz von einem Discord-Benutzer"""
@@ -121,11 +120,11 @@ async def zitat(ctx: discord.ApplicationContext,
     zitat_embed.add_field(name="Zitiert von", value=f"{ctx.author.mention}", inline=False)
     zitat_embed.set_footer(icon_url=ctx.author.avatar.url if ctx.author.avatar else ctx.author.default_avatar.url, text=f"{datetime.datetime.now().strftime('%d.%m.%Y | %H:%M')}")
     
-    channel = bot.get_channel(read_config()["QUOTES_CHANNEL"])
+    channel = bot.get_channel(settings.quotes_channel)
     message = await channel.send(embed=zitat_embed)
     await ctx.respond(f'Der Benutzer {discord_benutzer.mention} wurde mit folgendem Zitat zitiert: `{zitat}` von {ctx.author.mention}!', ephemeral=True)
-    await message.add_reaction(f"<:{read_config()['UPVOTE_EMOJI_NAME']}:{read_config()['UPVOTE_EMOJI_ID']}>")
-    await message.add_reaction(f"<:{read_config()['DOWNVOTE_EMOJI_NAME']}:{read_config()['DOWNVOTE_EMOJI_ID']}>")    
+    await message.add_reaction(f"<:{settings.upvote_emoji_name}:{settings.upvote_emoji_id}>")
+    await message.add_reaction(f"<:{settings.downvote_emoji_name}:{settings.downvote_emoji_id}>")
     conn = sqlite3.connect(database)
     cursor = conn.cursor()
     # Inserting the quote into the database
@@ -159,8 +158,8 @@ async def zitat(ctx: discord.ApplicationContext,
     
 
 @bot.slash_command(guild_ids=guilds) # The /custom_zitat command
-@commands.cooldown(1, read_config()["ZITAT_COOLDOWN"], commands.BucketType.user)
-@commands.has_role(read_config()["ZITAT_PERMISSION_ROLE_ID"])
+@commands.cooldown(1, settings.quote_cooldown, commands.BucketType.user)
+@commands.has_role(settings.quote_permission_role)
 async def custom_zitat(ctx: discord.ApplicationContext, 
                 benutzer: Option(str, "Der Name, der zitiert werden soll", required=True),
                 zitat: Option(str, "Der Satz, der zitiert werden soll", required=True),
@@ -180,11 +179,11 @@ async def custom_zitat(ctx: discord.ApplicationContext,
     zitat_embed.add_field(name="Zitiert von", value=f"{ctx.author.mention}", inline=False)
     zitat_embed.set_footer(icon_url=ctx.author.avatar.url if ctx.author.avatar else ctx.author.default_avatar.url, text=f"{datetime.datetime.now().strftime('%d.%m.%Y | %H:%M')}")
     
-    channel = bot.get_channel(read_config()["QUOTES_CHANNEL"])
+    channel = bot.get_channel(settings.quotes_channel)
     message = await channel.send(embed=zitat_embed)
     await ctx.respond(f'**@{benutzer.capitalize()}** wurde mit folgendem Zitat zitiert: `{zitat}` von {ctx.author.mention}!', ephemeral=True)
-    await message.add_reaction(f"<:{read_config()['UPVOTE_EMOJI_NAME']}:{read_config()['UPVOTE_EMOJI_ID']}>")
-    await message.add_reaction(f"<:{read_config()['DOWNVOTE_EMOJI_NAME']}:{read_config()['DOWNVOTE_EMOJI_ID']}>") 
+    await message.add_reaction(f"<:{settings.upvote_emoji_name}:{settings.upvote_emoji_id}>")
+    await message.add_reaction(f"<:{settings.downvote_emoji_name}:{settings.downvote_emoji_id}>")
     conn = sqlite3.connect(database)
     cursor = conn.cursor()
 
@@ -219,8 +218,8 @@ async def custom_zitat(ctx: discord.ApplicationContext,
 
 
 @bot.message_command(guild_ids=guilds, name="Zitieren") # The App Integration for quoting discord messages
-@commands.cooldown(1, read_config()["ZITAT_COOLDOWN"], commands.BucketType.user)
-@commands.has_role(read_config()["ZITAT_PERMISSION_ROLE_ID"])
+@commands.cooldown(1, settings.quote_cooldown, commands.BucketType.user)
+@commands.has_role(settings.quote_permission_role)
 async def app_zitat(ctx: discord.ApplicationContext, message):
 
     if len(message.content) > 1500:
@@ -234,11 +233,11 @@ async def app_zitat(ctx: discord.ApplicationContext, message):
     zitat_embed.add_field(name="Zitiert von", value=f"{ctx.author.mention}", inline=False)
     zitat_embed.set_footer(icon_url=ctx.author.avatar.url if ctx.author.avatar else ctx.author.default_avatar.url, text=f"{datetime.datetime.now().strftime('%d.%m.%Y | %H:%M')}")
     
-    channel = bot.get_channel(read_config()["QUOTES_CHANNEL"])
+    channel = bot.get_channel(settings.quotes_channel)
     new_message = await channel.send(embed=zitat_embed)
     await ctx.respond(f'Der Benutzer {message.author.mention} wurde mit folgendem Zitat zitiert: `{message.content}` von {ctx.author.mention}!', ephemeral=True)
-    await new_message.add_reaction(f"<:{read_config()['UPVOTE_EMOJI_NAME']}:{read_config()['UPVOTE_EMOJI_ID']}>")
-    await new_message.add_reaction(f"<:{read_config()['DOWNVOTE_EMOJI_NAME']}:{read_config()['DOWNVOTE_EMOJI_ID']}>") 
+    await message.add_reaction(f"<:{settings.upvote_emoji_name}:{settings.upvote_emoji_id}>")
+    await message.add_reaction(f"<:{settings.downvote_emoji_name}:{settings.downvote_emoji_id}>")
 
     conn = sqlite3.connect(database)
     cursor = conn.cursor()
@@ -299,7 +298,7 @@ async def send_info_text(ctx):
             \nAlle bereits vorhandenen Zitate bleiben weiterhin im Channel erhalten; es handelt sich also nur um einen Formatwechsel. Allerdings werden alle bereits vorhandenen Zitate **nicht** in die Datenbank übernommen, d.h., sie gehen verloren, wenn sie auf eine andere Plattform übertragen werden. Dies liegt hauptsächlich an allen, die das Zitatformat nicht richtig eingehalten haben.
 
             \n## Ich kann die Commands nicht benutzen?
-            \nStelle sicher das du die <@&{read_config()["ZITAT_PERMISSION_ROLE_ID"]}> Rolle hast. Falls du sie nicht haben solltest, frag bitte einen der Admins ob er sie dir wieder gibt.
+            \nStelle sicher das du die <@&{settings.quote_permission_role}> Rolle hast. Falls du sie nicht haben solltest, frag bitte einen der Admins ob er sie dir wieder gibt.
             
             \n## Mir gefällt Feature XY an dem Bot nicht?
             \nDu kannst gerne <@539142329546571806> kontaktieren und deine Idee einbringen. Alternativ kannst du auch gerne einen Pull-Request auf GitHub erstellen. \n[Link zum Repository](https://github.com/forest-cat/zitate).
@@ -311,4 +310,4 @@ async def send_info_text(ctx):
     await info_msg.pin()
 
 # running the actual bot
-bot.run(read_config()["TOKEN"])
+bot.run(settings.discord_token)

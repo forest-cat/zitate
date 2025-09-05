@@ -14,7 +14,10 @@ dependencies = [
     "idna>=3.4",
     "multidict>=6.0.4",
     "py-cord>=2.4.1",
+    "pydantic>=2.11.7",
+    "pydantic-settings>=2.10.1",
     "pytz>=2023.3.post1",
+    "pyyaml>=6.0.2",
     "typing-extensions>=4.7.1",
     "yarl>=1.9.2",
 ]
