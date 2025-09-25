@@ -19,8 +19,12 @@ intents.message_content = True
 guilds = settings.guilds
 bot = discord.Bot(intents=intents)
 database = settings.db_filename
+
+handler = logging.StreamHandler()
+handler.setFormatter(logging.Formatter(settings.log_format))
 logger = logging.getLogger(__name__)
 logger.setLevel(settings.log_level)
+logger.addHandler(handler)
 
 @bot.event
 async def on_ready(): # Creating the database if it doesn't exist

@@ -9,6 +9,7 @@ from pydantic import Field
 class Settings(BaseSettings):
     db_filename:            str = Field("zitate_db.sqlite", validation_alias="DATABASE_FILENAME")
     log_level:              str = Field("INFO", validation_alias="LOG_LEVEL")
+    log_format:             str = Field("%(asctime)s - %(levelname)s - %(name)s - %(message)s", validation_alias="LOG_FORMAT")
     guilds:                 List[int] = Field(..., validation_alias="GUILDS")
     quotes_channel:         int = Field(..., validation_alias="QUOTES_CHANNEL")
     config_file:            str = Field(..., validation_alias="CONFIG_FILENAME")
@@ -43,6 +44,9 @@ def load_config() -> Settings:
 
     if os.getenv("LOG_LEVEL") or yaml_data.get("log_level"):
         data["log_level"] = os.getenv("LOG_LEVEL") or yaml_data.get("log_level")
+
+    if os.getenv("LOG_FORMAT") or yaml_data.get("log_format"):
+        data["log_format"] = os.getenv("LOG_FORMAT") or yaml_data.get("log_format")
 
     if os.getenv("GUILDS") or yaml_data.get("guilds"):
         data["guilds"] = os.getenv("GUILDS") or yaml_data.get("guilds")
