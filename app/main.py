@@ -11,8 +11,6 @@ from discord.commands import Option, message_command
 
 from config import load_config
 
-
-
 settings = load_config()
 intents = discord.Intents.default()
 intents.message_content = True
@@ -22,7 +20,7 @@ database = settings.db_filename
 
 handler = logging.StreamHandler()
 handler.setFormatter(logging.Formatter(settings.log_format))
-logger = logging.getLogger(__name__)
+logger = logging.getLogger('discord')
 logger.setLevel(settings.log_level)
 logger.addHandler(handler)
 
