@@ -14,6 +14,8 @@ class Settings(BaseSettings):
     quotes_channel:         int = Field(..., validation_alias="QUOTES_CHANNEL")
     config_file:            str = Field(..., validation_alias="CONFIG_FILENAME")
     discord_token:          str = Field(..., validation_alias="DISCORD_TOKEN")
+    sis_api_token:          str = Field(..., validation_alias="SIS_API_TOKEN")
+    sis_api_endpoint:       str = Field(..., validation_alias="SIS_API_ENDPOINT")
     upvote_emoji_name:      str = Field(..., validation_alias="UPVOTE_EMOJI_NAME")
     upvote_emoji_id:        int = Field(..., validation_alias="UPVOTE_EMOJI_ID")
     downvote_emoji_name:    str = Field(..., validation_alias="DOWNVOTE_EMOJI_NAME")
@@ -59,6 +61,12 @@ def load_config() -> Settings:
 
     if os.getenv("DISCORD_TOKEN") or yaml_data.get("discord_token"):
         data["discord_token"] = os.getenv("DISCORD_TOKEN") or yaml_data.get("discord_token")
+
+    if os.getenv("SIS_API_TOKEN") or yaml_data.get("sis_api_token"):
+        data["sis_api_token"] = os.getenv("SIS_API_TOKEN") or yaml_data.get("sis_api_token")
+
+    if os.getenv("SIS_API_ENDPOINT") or yaml_data.get("sis_api_endpoint"):
+        data["sis_api_endpoint"] = os.getenv("SIS_API_ENDPOINT") or yaml_data.get("sis_api_endpoint")
 
     if os.getenv("UPVOTE_EMOJI_NAME") or yaml_data.get("upvote_emoji_name"):
         data["upvote_emoji_name"] = os.getenv("UPVOTE_EMOJI_NAME") or yaml_data.get("upvote_emoji_name")
