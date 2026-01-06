@@ -5,7 +5,7 @@ import sqlite3
 import discord
 import datetime
 from discord.ext import commands
-from app.config import load_config
+from config import load_config
 from discord.commands import slash_command, Option, message_command
 
 
