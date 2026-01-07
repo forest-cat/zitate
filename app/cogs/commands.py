@@ -196,7 +196,6 @@ class Commands(commands.Cog):
             description=f"## `{message.content}`\n({message.jump_url})\n## {message.author.mention}")
         zitat_embed.set_thumbnail(
             url=await self.transfer_image(message.author.avatar.url, message.author.id) if message.author.avatar else await self.transfer_image(message.author.default_avatar.url, message.author.id))
-        print(message.author.avatar.url)
         zitat_embed.add_field(name="Rating", value="0", inline=False)
         zitat_embed.add_field(name="Zitiert von", value=f"{ctx.author.mention}", inline=False)
         zitat_embed.set_footer(icon_url=await self.transfer_image(ctx.author.avatar.url, ctx.author.id) if ctx.author.avatar else await self.transfer_image(ctx.author.default_avatar.url, ctx.author.id),
@@ -207,8 +206,8 @@ class Commands(commands.Cog):
         await ctx.respond(
             f'Der Benutzer {message.author.mention} wurde mit folgendem Zitat zitiert: `{message.content}` von {ctx.author.mention}!',
             ephemeral=True)
-        await message.add_reaction(f"<:{settings.upvote_emoji_name}:{settings.upvote_emoji_id}>")
-        await message.add_reaction(f"<:{settings.downvote_emoji_name}:{settings.downvote_emoji_id}>")
+        await new_message.add_reaction(f"<:{settings.upvote_emoji_name}:{settings.upvote_emoji_id}>")
+        await new_message.add_reaction(f"<:{settings.downvote_emoji_name}:{settings.downvote_emoji_id}>")
 
         conn = sqlite3.connect(settings.db_filename)
         cursor = conn.cursor()
