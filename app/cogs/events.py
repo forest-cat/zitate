@@ -113,11 +113,5 @@ class Events(commands.Cog):
         else:
             raise error
 
-    @slash_command(name='ping',
-                   guild_ids=settings.guilds,
-                   description="Shows you the bots latency to the discord api")
-    async def ping(self, ctx):
-        await ctx.respond(f"My Latency is: `{int(round(self.bot.latency*60, 0))}ms`")
-
 def setup(bot):
     bot.add_cog(Events(bot))

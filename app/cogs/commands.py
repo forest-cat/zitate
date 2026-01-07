@@ -283,7 +283,7 @@ class Commands(commands.Cog):
         await info_msg.pin()
 
 
-    @slash_command(name='pingg',
+    @slash_command(name='ping',
                    guild_ids=settings.guilds,
                    description="Shows you the bots latency to the discord api")
     async def ping(self, ctx):
