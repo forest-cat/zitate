@@ -111,7 +111,7 @@ class Events(commands.Cog):
         elif isinstance(error, requests.exceptions.RequestException):
             await ctx.respond(f"Es gab einen Fehler in der Kommunikation mit der SIS-API", ephemeral=True)
         else:
+            await ctx.respond(f"Es gab einen Fehler: {error}", ephemeral=True)
             raise error
-
 def setup(bot):
     bot.add_cog(Events(bot))

@@ -29,8 +29,10 @@ class Commands(commands.Cog):
 
     async def transfer_image(self, avatar_url: str, user_id: int) -> str:
         # data = requests.get(image).content
-        download_response = requests.get(avatar_url)
-
+        try:
+            download_response = requests.get(avatar_url)
+        except Exception:
+            raise requests.exceptions.RequestException
         image_file = io.BytesIO(download_response.content)
         content_type = download_response.headers.get('Content-Type')
         image_filename = os.path.basename(urlparse(avatar_url).path)
@@ -39,7 +41,10 @@ class Commands(commands.Cog):
         headers = {"Authorization": f"Bearer {settings.sis_api_token}"}
         files = {'file': (image_filename, image_file, content_type)}
 
-        response = requests.post(upload_url, files=files, headers=headers)
+        try:
+            response = requests.post(upload_url, files=files, headers=headers)
+        except Exception:
+            raise requests.exceptions.RequestException
         if response.status_code != 200:
             raise requests.exceptions.RequestException
         return f"{settings.sis_api_endpoint}/image/{user_id}"
@@ -239,6 +244,31 @@ class Commands(commands.Cog):
                         ))
         conn.commit()
         conn.close()
+
+    # Delete existing quotes from db and the channel
+    @slash_command(guild_ids=settings.guilds)
+    @discord.default_permissions(administrator=True)
+    async def delete_quote(self, ctx, message_id: str):
+        with sqlite3.connect(settings.db_filename) as conn:
+            cursor = conn.cursor()
+
+            cursor.execute("SELECT * FROM Zitate WHERE Message_ID = ?", (message_id,))
+            rows = cursor.fetchall()
+
+            if rows:
+                cursor.execute("DELETE FROM Zitate WHERE Message_ID = ?", (message_id,))
+                logger.info(f"Deleted entry in db with Message_ID: {message_id}")
+                conn.commit()
+            else:
+                logger.info(f"No db entry found for Message_ID: {message_id}")
+
+        channel = self.bot.get_channel(settings.quotes_channel)
+        try:
+            message = await channel.fetch_message(message_id)
+            await message.delete()
+            await ctx.respond(f"Das Zitat wurde aus der Datenbank (falls vorhanden) und dem Discord Channel {ctx.channel.mention} entfernt!", ephemeral=True)
+        except discord.errors.NotFound:
+            await ctx.respond(f"Die Discord Nachricht mit der ID: {message_id} in Channel {ctx.channel.mention} wurde nicht gefunden!", ephemeral=True)
 
 
     # The Command for the fancy information text
