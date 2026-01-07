@@ -1,6 +1,8 @@
 import json
 import logging
 import sqlite3
+
+import requests
 from discord.ext import commands
 from config import load_config
 from discord.commands import slash_command
@@ -106,6 +108,8 @@ class Events(commands.Cog):
                               ephemeral=True)
         elif isinstance(error, commands.errors.MissingRole):
             await ctx.respond(f"Dir fehlt dazu leider die <@&{settings.quote_permission_role}> Rolle", ephemeral=True)
+        elif isinstance(error, requests.exceptions.RequestException):
+            await ctx.respond(f"Es gab einen Fehler in der Kommunikation mit der SIS-API", ephemeral=True)
         else:
             raise error
 

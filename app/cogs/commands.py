@@ -1,9 +1,15 @@
+import io
+import os
+from urllib.parse import urlparse
+
 import pytz
 import json
 import logging
 import sqlite3
 import discord
 import datetime
+
+import requests
 from discord.ext import commands
 from config import load_config
 from discord.commands import slash_command, Option, message_command
@@ -20,6 +26,23 @@ logger.addHandler(handler)
 class Commands(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
+
+    async def transfer_image(self, avatar_url: str, user_id: int) -> str:
+        # data = requests.get(image).content
+        download_response = requests.get(avatar_url)
+
+        image_file = io.BytesIO(download_response.content)
+        content_type = download_response.headers.get('Content-Type')
+        image_filename = os.path.basename(urlparse(avatar_url).path)
+
+        upload_url = f"{settings.sis_api_endpoint}/upload/{user_id}"
+        headers = {"Authorization": f"Bearer {settings.sis_api_token}"}
+        files = {'file': (image_filename, image_file, content_type)}
+
+        response = requests.post(upload_url, files=files, headers=headers)
+        if response.status_code != 200:
+            raise requests.exceptions.RequestException
+        return f"{settings.sis_api_endpoint}/image/{user_id}"
 
 
     @commands.Cog.listener()
@@ -51,10 +74,10 @@ class Commands(commands.Cog):
             color=discord.Color.random(),
             description=f"## `{zitat}`\n{kontext if kontext == '' else f'({kontext})'}\n## {discord_benutzer.mention}")
         zitat_embed.set_thumbnail(
-            url=discord_benutzer.avatar.url if discord_benutzer.avatar else discord_benutzer.default_avatar.url)
+            url=await self.transfer_image(discord_benutzer.avatar.url, discord_benutzer.id) if discord_benutzer.avatar else await self.transfer_image(discord_benutzer.default_avatar.url, discord_benutzer.id))
         zitat_embed.add_field(name="Rating", value="0", inline=False)
         zitat_embed.add_field(name="Zitiert von", value=f"{ctx.author.mention}", inline=False)
-        zitat_embed.set_footer(icon_url=ctx.author.avatar.url if ctx.author.avatar else ctx.author.default_avatar.url,
+        zitat_embed.set_footer(icon_url=await self.transfer_image(ctx.author.avatar.url, ctx.author.id) if ctx.author.avatar else await self.transfer_image(ctx.author.default_avatar.url, ctx.author.id),
                                text=f"{datetime.datetime.now().strftime('%d.%m.%Y | %H:%M')}")
 
         channel = self.bot.get_channel(settings.quotes_channel)
@@ -118,7 +141,7 @@ class Commands(commands.Cog):
             description=f"## `{zitat}`\n{kontext if kontext == '' else f'({kontext})'}\n## @{benutzer.capitalize()}")
         zitat_embed.add_field(name="Rating", value="0", inline=False)
         zitat_embed.add_field(name="Zitiert von", value=f"{ctx.author.mention}", inline=False)
-        zitat_embed.set_footer(icon_url=ctx.author.avatar.url if ctx.author.avatar else ctx.author.default_avatar.url,
+        zitat_embed.set_footer(icon_url=await self.transfer_image(ctx.author.avatar.url, ctx.author.id) if ctx.author.avatar else await self.transfer_image(ctx.author.default_avatar.url, ctx.author.id),
                                text=f"{datetime.datetime.now().strftime('%d.%m.%Y | %H:%M')}")
 
         channel = self.bot.get_channel(settings.quotes_channel)
@@ -172,10 +195,11 @@ class Commands(commands.Cog):
             color=discord.Color.random(),
             description=f"## `{message.content}`\n({message.jump_url})\n## {message.author.mention}")
         zitat_embed.set_thumbnail(
-            url=message.author.avatar.url if message.author.avatar else message.author.default_avatar.url)
+            url=await self.transfer_image(message.author.avatar.url, message.author.id) if message.author.avatar else await self.transfer_image(message.author.default_avatar.url, message.author.id))
+        print(message.author.avatar.url)
         zitat_embed.add_field(name="Rating", value="0", inline=False)
         zitat_embed.add_field(name="Zitiert von", value=f"{ctx.author.mention}", inline=False)
-        zitat_embed.set_footer(icon_url=ctx.author.avatar.url if ctx.author.avatar else ctx.author.default_avatar.url,
+        zitat_embed.set_footer(icon_url=await self.transfer_image(ctx.author.avatar.url, ctx.author.id) if ctx.author.avatar else await self.transfer_image(ctx.author.default_avatar.url, ctx.author.id),
                                text=f"{datetime.datetime.now().strftime('%d.%m.%Y | %H:%M')}")
 
         channel = self.bot.get_channel(settings.quotes_channel)
