@@ -1,6 +1,6 @@
 [project]
 name = "zitate"
-version = "0.1.0"
+version = "1.0.0"
 description = "A small bot to send quotes into a specific discord channel that integrates with the Simple Image Storage API"
 readme = "README.md"
 requires-python = ">=3.12"
